@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard DM Tipe 2 - Supabase</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="loginPage">
+  <div class="login-box">
+    <div class="logo">+</div>
+    <h1>Dashboard PTM</h1>
+    <p>Pengendalian Diabetes Melitus Tipe 2</p>
+    <form id="loginForm">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="username" placeholder="Email Supabase" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Password" required>
+      </div>
+      <button class="btn-primary" type="submit">Masuk ke Dashboard</button>
+      <div id="loginError" class="error"></div>
+    </form>
+    <div class="login-info">Gunakan akun yang dibuat di Supabase Authentication.</div>
+  </div>
+</div>
+
+<div id="dashboardPage">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="mini-logo">+</div>
+      <h3>Dashboard PTM</h3>
+      <small>DM Tipe 2</small>
+    </div>
+    <div class="nav-item active" data-page="dashboard"><span>📊</span><span>Dashboard</span></div>
+    <div class="nav-item" data-page="patients"><span>👥</span><span>Data Pasien</span></div>
+    <div class="nav-item" data-page="followup"><span>📋</span><span>Follow-up</span></div>
+    <div class="nav-item" data-page="report"><span>📈</span><span>Laporan</span></div>
+    <div class="nav-item" data-page="users"><span>👤</span><span>Manajemen Petugas</span>
+    </div>
+      <div class="nav-item" data-page="activity"><span>📋</span><span>Riwayat Aktivitas</span>
+  </div>
+    <div class="nav-item logout" id="logoutBtn"><span>🚪</span><span>Keluar</span></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h2 id="pageTitle">Dashboard DM Tipe 2</h2>
+        <p>Monitoring dan pengendalian pasien Diabetes Melitus Tipe 2</p>
+      </div>
+      <div class="user-badge">👤 <span id="loggedUser">Admin</span></div>
+    </div>
+
+    <section id="dashboardSection" class="page-section active">
+      <div class="filter-box">
+        <h3>🔎 Filter Data</h3>
+        <div class="filters">
+          <div>
+            <label>Status DM</label>
+            <select id="filterStatus">
+              <option value="all">Semua Status</option>
+              <option value="Terkendali">Terkendali</option>
+              <option value="Tidak Terkendali">Tidak Terkendali</option>
+              <option value="Tidak Berkunjung">Tidak Berkunjung</option>
+            </select>
+          </div>
+          <div>
+            <div>
+            <label>Status Prolanis</label>
+            <select id="filterProlanis">
+                <option value="all">Semua Status</option>
+                <option value="Prolanis">Prolanis</option>
+                <option value="Non-Prolanis">Non-Prolanis</option>
+            </select>
+        </div>
+            <label>Cari Pasien</label>
+            <input type="text" id="filterSearch" placeholder="Nama pasien...">
+          </div>
+        </div>
+      </div>
+
+      <div class="stats">
+
+  <div
+    class="stat-card"
+    onclick="filterByStatus('all')"
+  >
+    <div class="label">TOTAL PASIEN DM</div>
+    <div class="number" id="totalPasien">0</div>
+    <div class="percent">Pasien terdaftar</div>
+  </div>
+
+
+  <div
+    class="stat-card green"
+    onclick="filterByStatus('Terkendali')"
+  >
+    <div class="label">DM TERKENDALI</div>
+    <div class="number" id="totalTerkendali">0</div>
+    <div class="percent" id="persenTerkendali">0%</div>
+  </div>
+
+
+  <div
+    class="stat-card yellow"
+    onclick="filterByStatus('Tidak Terkendali')"
+  >
+    <div class="label">DM TIDAK TERKENDALI</div>
+    <div class="number" id="totalTidakTerkendali">0</div>
+    <div class="percent" id="persenTidakTerkendali">0%</div>
+  </div>
+
+
+  <div
+    class="stat-card brown"
+    onclick="filterByStatus('Tidak Berkunjung')"
+  >
+    <div class="label">TIDAK BERKUNJUNG</div>
+    <div class="number" id="totalTidakBerkunjung">0</div>
+    <div class="percent" id="persenTidakBerkunjung">0%</div>
+  </div>
+
+</div>
+
+      <div class="content-grid">
+        <div class="card">
+          <h3>📊 Status Pengendalian DM</h3>
+          <div class="chart">
+            <div class="bar-group"><div class="bar-value" id="chartTerkendali">0</div><div class="bar green" id="barTerkendali"></div><div class="bar-label">Terkendali</div></div>
+            <div class="bar-group"><div class="bar-value" id="chartTidakTerkendali">0</div><div class="bar yellow" id="barTidakTerkendali"></div><div class="bar-label">Tidak<br>Terkendali</div></div>
+            <div class="bar-group"><div class="bar-value" id="chartTidakBerkunjung">0</div><div class="bar" id="barTidakBerkunjung"></div><div class="bar-label">Tidak<br>Berkunjung</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>📈 Indikator Program DM</h3>
+          <div class="progress-item"><div class="progress-header"><span>DM Terkendali</span><b id="progressTerkendali">0%</b></div><div class="progress-bar"><div class="progress-fill" id="fillTerkendali"></div></div></div>
+          <div class="progress-item"><div class="progress-header"><span>Kunjungan Pasien</span><b id="progressKunjungan">0%</b></div><div class="progress-bar"><div class="progress-fill" id="fillKunjungan"></div></div></div>
+          <div class="progress-item"><div class="progress-header"><span>Pasien Perlu Follow-up</span><b id="progressFollowup">0%</b></div><div class="progress-bar"><div class="progress-fill yellow" id="fillFollowup"></div></div></div>
+        </div>
+      </div>
+
+<!-- RINGKASAN HASIL FOLLOW-UP -->
+<!-- GRAFIK TREN DM -->
+<div class="card">
+  <h3>📈 Tren Status Pengendalian DM</h3>
+
+  <p class="muted">
+    Perkembangan jumlah pasien berdasarkan status pengendalian DM pada setiap bulan.
+  </p>
+
+  <div style="height:320px; position:relative;">
+    <canvas id="trendStatusChart"></canvas>
+  </div>
+</div>
+<div class="card">
+  <h3>📋 Ringkasan Hasil Follow-up</h3>
+
+  <div class="followup-result-grid">
+
+    <div class="followup-result-card pending">
+      <div class="followup-result-number" id="followupBelum">0</div>
+      <div class="followup-result-label">
+        Belum Ditindaklanjuti
+      </div>
+    </div>
+
+    <div class="followup-result-card success">
+      <div class="followup-result-number" id="followupSelesai">0</div>
+      <div class="followup-result-label">
+        Sudah Ditindaklanjuti
+      </div>
+    </div>
+
+    <div class="followup-result-card success">
+      <div class="followup-result-number" id="followupKontrol">0</div>
+      <div class="followup-result-label">
+        Pasien Sudah Kontrol
+      </div>
+    </div>
+
+    <div class="followup-result-card danger">
+      <div class="followup-result-number" id="followupTidakDihubungi">0</div>
+      <div class="followup-result-label">
+        Tidak Dapat Dihubungi
+      </div>
+    </div>
+
+    <div class="followup-result-card danger">
+      <div class="followup-result-number" id="followupMenolak">0</div>
+      <div class="followup-result-label">
+        Menolak Kontrol
+      </div>
+    </div>
+
+  </div>
+</div>
+      <div class="table-card">
+        <div class="table-header"><h3>👥 Data Pasien DM Tipe 2</h3><button class="btn-add" id="openModalBtn">+ Tambah Pasien</button></div>
+        <div class="table-wrapper"><table><thead><tr><th>ID</th><th>Nama Pasien</th><th>Umur</th><th>GDP</th><th>HbA1c</th><th>TD</th><th>Status</th><th>Follow-up</th><th>Aksi</th></tr></thead><tbody id="patientTableBody"></tbody></table></div>
+      </div>
+
+      <div class="card"><h3>📋 Pasien yang Perlu Follow-up</h3><div class="follow-up-list" id="followUpList"></div></div>
+    </section>
+
+    <section id="patientsSection" class="page-section">
+
+  <div class="patients-page-header">
+  <div>
+    <h2>Database Pasien DM Tipe 2</h2>
+    <p>Kelola data dan pemantauan pasien diabetes melitus tipe 2.</p>
+  </div>
+
+  <button class="btn-add" id="openModalBtn2">
+    + Tambah Pasien
+  </button>
+</div>
+
+  <div class="patients-info-grid">
+
+    <div class="patients-info-card">
+      <span class="info-label">TOTAL PASIEN</span>
+      <strong id="patientPageTotal">0</strong>
+      <small>Pasien terdaftar</small>
+    </div>
+
+    <div class="patients-info-card controlled">
+      <span class="info-label">TERKENDALI</span>
+      <strong id="patientPageControlled">0</strong>
+      <small>DM terkendali</small>
+    </div>
+
+    <div class="patients-info-card uncontrolled">
+      <span class="info-label">TIDAK TERKENDALI</span>
+      <strong id="patientPageUncontrolled">0</strong>
+      <small>Perlu pemantauan</small>
+    </div>
+
+    <div class="patients-info-card notvisited">
+      <span class="info-label">TIDAK BERKUNJUNG</span>
+      <strong id="patientPageNotVisited">0</strong>
+      <small>Perlu follow-up</small>
+    </div>
+
+  </div>
+
+  <div class="table-card patients-database-card">
+
+    <div class="table-header patients-table-header">
+
+      <div>
+        <h3>👥 Data Pasien DM Tipe 2</h3>
+        <p class="muted">
+          Klik <strong>Detail</strong> untuk melihat riwayat kunjungan dan follow-up pasien.
+        </p>
+      </div>
+
+    </div>
+
+    <div class="patients-search-box">
+
+      <div class="patient-search-input">
+        <label for="patientPageSearch">🔎 Cari Pasien</label>
+        <input
+          type="text"
+          id="patientPageSearch"
+          placeholder="Cari berdasarkan nama atau ID pasien..."
+        >
+      </div>
+
+      <div class="patient-search-filter">
+        <label for="patientPageStatus">Status DM</label>
+        <select id="patientPageStatus">
+          <option value="all">Semua Status</option>
+          <option value="Terkendali">Terkendali</option>
+          <option value="Tidak Terkendali">Tidak Terkendali</option>
+          <option value="Tidak Berkunjung">Tidak Berkunjung</option>
+        </select>
+      </div>
+
+      <div class="patient-search-filter">
+
+  <label for="patientPageProlanis">
+    Status Prolanis
+  </label>
+
+  <select id="patientPageProlanis">
+
+    <option value="all">
+      Semua Status
+    </option>
+
+    <option value="Prolanis">
+      Prolanis
+    </option>
+
+    <option value="Non-Prolanis">
+      Non-Prolanis
+    </option>
+
+  </select>
+
+</div>
+
+    </div>
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+  <tr>
+    <th>ID</th>
+    <th>Nama</th>
+    <th>Umur</th>
+    <th>GDP</th>
+    <th>GDS</th>
+    <th>HbA1c</th>
+    <th>TD</th>
+    <th>Prolanis</th>
+    <th>Status DM</th>
+    <th>Aksi</th>
+  </tr>
+</thead>
+
+        <tbody id="allPatientTableBody"></tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</section>
+
+    <section id="followupSection" class="page-section">
+
+  <!-- HEADER -->
+  <div class="followup-page-header">
+    <div>
+      <h2>Pasien Perlu Follow-up</h2>
+      <p>
+        Pemantauan pasien diabetes melitus tipe 2 yang memerlukan tindak lanjut.
+      </p>
+    </div>
+  </div>
+
+
+  <!-- FILTER -->
+  <div class="card followup-filter-card">
+
+    <div class="followup-filter-title">
+      <div>
+        <h3>🔎 Filter Follow-up</h3>
+        <p class="muted">
+          Gunakan filter untuk melihat pasien berdasarkan prioritas atau status DM.
+        </p>
+      </div>
+    </div>
+
+    <div class="followup-filters">
+
+      <div class="filter-group">
+        <label for="followupPriorityFilter">
+          Prioritas
+        </label>
+
+        <select id="followupPriorityFilter">
+          <option value="all">Semua Prioritas</option>
+          <option value="Tinggi">Tinggi</option>
+          <option value="Sedang">Sedang</option>
+        </select>
+      </div>
+
+
+      <div class="filter-group">
+        <label for="followupStatusFilter">
+          Status DM
+        </label>
+
+        <select id="followupStatusFilter">
+          <option value="all">Semua Status</option>
+          <option value="Tidak Berkunjung">
+            Tidak Berkunjung
+          </option>
+          <option value="Tidak Terkendali">
+            Tidak Terkendali
+          </option>
+        </select>
+      </div>
+
+      <div class="followup-filter-button">
+        <button
+          type="button"
+          id="resetFollowupFilter"
+          class="action-btn">
+          ↻ Reset Filter
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- RINGKASAN ALASAN -->
+  <div id="followupReasonSummary"></div>
+
+
+  <!-- DAFTAR PASIEN -->
+  <div class="card followup-list-card">
+
+    <div class="followup-list-header">
+      <div>
+        <h3>👥 Daftar Pasien</h3>
+        <p class="muted">
+          Pasien yang membutuhkan tindak lanjut berdasarkan hasil pemantauan.
+        </p>
+      </div>
+    </div>
+
+    <div
+      class="follow-up-list"
+      id="allFollowUpList">
+    </div>
+
+  </div>
+
+</section>
+
+<section id="reportSection" class="page-section">
+
+  <!-- HEADER LAPORAN -->
+  <div class="report-page-header">
+    <div>
+      <h2>Laporan Program DM Tipe 2</h2>
+      <p>
+        Ringkasan hasil pemantauan dan pengendalian diabetes melitus tipe 2.
+      </p>
+    </div>
+
+    <div class="report-actions">
+      <button
+        type="button"
+        class="action-btn"
+        onclick="printReport()">
+        🖨️ Cetak Laporan
+      </button>
+    </div>
+  </div>
+
+
+  <!-- FILTER LAPORAN -->
+  <div class="card report-filter-card">
+
+    <div class="report-filter-title">
+      <h3>🔎 Filter Periode Laporan</h3>
+      <p>
+        Pilih bulan dan tahun untuk menampilkan laporan pada periode tertentu.
+      </p>
+    </div>
+
+    <div class="report-filter">
+
+      <div class="filter-group">
+        <label for="reportMonth">
+          Bulan
+        </label>
+
+        <select id="reportMonth">
+          <option value="all">Semua Bulan</option>
+          <option value="01">Januari</option>
+          <option value="02">Februari</option>
+          <option value="03">Maret</option>
+          <option value="04">April</option>
+          <option value="05">Mei</option>
+          <option value="06">Juni</option>
+          <option value="07">Juli</option>
+          <option value="08">Agustus</option>
+          <option value="09">September</option>
+          <option value="10">Oktober</option>
+          <option value="11">November</option>
+          <option value="12">Desember</option>
+        </select>
+      </div>
+
+
+      <div class="filter-group">
+        <label for="reportYear">
+          Tahun
+        </label>
+
+        <select id="reportYear">
+          <option value="all">Semua Tahun</option>
+        </select>
+      </div>
+
+
+      <div class="report-filter-buttons">
+
+        <button
+          type="button"
+          class="action-btn"
+          onclick="applyReportFilter()">
+          ✓ Terapkan
+        </button>
+
+        <button
+          type="button"
+          class="action-btn"
+          onclick="resetReportFilter()">
+          ↻ Reset
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ISI LAPORAN -->
+  <div id="reportContent"></div>
+
+</section>
+<section id="usersSection" class="page-section">
+
+  <div class="patients-page-header">
+
+  <div>
+    <h2>Manajemen Petugas</h2>
+
+    <p>
+      Mengelola akun yang memiliki akses ke Dashboard DM Puskesmas.
+    </p>
+  </div>
+
+  <button
+    type="button"
+    class="btn-add"
+    onclick="openPetugasModal()"
+  >
+    + Tambah Petugas
+  </button>
+
+</div>
+
+  <div class="card">
+
+    <div class="table-header">
+      <div>
+        <h3>👥 Daftar Petugas</h3>
+
+        <p class="muted">
+          Hanya akun yang terdaftar dan aktif yang dapat mengakses
+          data dashboard.
+        </p>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Nama</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+
+        <tbody id="dashboardUsersTableBody">
+
+          <tr>
+            <td colspan="4" class="empty">
+              Memuat data petugas...
+            </td>
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</section>
+<section id="activitySection" class="page-section">
+
+  <div class="patients-page-header">
+
+    <div>
+      <h2>Riwayat Aktivitas</h2>
+
+      <p>
+        Riwayat aktivitas pengguna pada Dashboard DM Puskesmas.
+      </p>
+    </div>
+
+  </div>
+
+
+  <div class="card">
+
+    <div class="table-header">
+
+      <div>
+        <h3>📋 Log Aktivitas</h3>
+
+        <p class="muted">
+          Menampilkan aktivitas yang dilakukan oleh pengguna dashboard.
+        </p>
+      </div>
+
+    </div>
+
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>Waktu</th>
+
+            <th>Petugas</th>
+
+            <th>Aktivitas</th>
+
+            <th>Data</th>
+
+            <th>Keterangan</th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody id="activityLogsTableBody">
+
+          <tr>
+
+            <td colspan="5" class="empty">
+              Memuat riwayat aktivitas...
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</section>
+  </main>
+</div>
+
+<div class="modal" id="patientModal">
+  <div class="modal-box">
+    <div class="modal-header"><h3>Tambah Data Pasien DM</h3><button class="close-btn" id="closeModalBtn">×</button></div>
+    <form id="patientForm">
+      <div class="modal-grid">
+
+  <!-- IDENTITAS PASIEN -->
+
+  <div class="form-group">
+    <label>Nama Pasien</label>
+    <input type="text" id="inputNama" required>
+  </div>
+
+  <div class="form-group">
+    <label>NIK</label>
+    <input type="text" id="inputNIK" maxlength="16" inputmode="numeric">
+  </div>
+
+  <div class="form-group">
+    <label>Tanggal Lahir</label>
+    <input type="date" id="inputTanggalLahir">
+  </div>
+
+  <div class="form-group">
+    <label>Umur</label>
+    <input type="number" id="inputUmur" min="0">
+  </div>
+
+  <div class="form-group">
+    <label>No. HP</label>
+    <input type="tel" id="inputNoHP">
+  </div>
+
+  <div class="form-group">
+    <label>Alamat</label>
+    <textarea id="inputAlamat" rows="2"></textarea>
+  </div>
+
+
+  <!-- KEPESERTAAN -->
+
+  <div class="form-group">
+    <label>No BPJS</label>
+    <input type="text" id="inputNoBPJS">
+  </div>
+
+  <div class="form-group">
+    <label>Status Prolanis</label>
+    <select id="inputStatusProlanis">
+      <option value="Non-Prolanis">Non-Prolanis</option>
+      <option value="Prolanis">Prolanis</option>
+    </select>
+  </div>
+
+
+  <!-- DIAGNOSIS -->
+
+  <div class="form-group">
+    <label>Tanggal Diagnosis DM</label>
+    <input type="date" id="inputTanggalDiagnosis">
+  </div>
+
+  <!-- PEMERIKSAAN -->
+
+  <div class="form-group">
+    <label>GDP (mg/dL)</label>
+    <input type="number" id="inputGDP">
+  </div>
+
+  <div class="form-group">
+    <label>GDS (mg/dL)</label>
+    <input type="number" id="inputGDS">
+  </div>
+
+  <div class="form-group">
+    <label>HbA1c (%)</label>
+    <input type="number" step="0.1" id="inputHbA1c">
+  </div>
+
+  <div class="form-group">
+    <label>Tekanan Darah</label>
+    <input type="text" id="inputTD" placeholder="130/80">
+  </div>
+
+
+  <!-- TERAPI -->
+
+<div class="form-group">
+  <label>Obat / Terapi DM</label>
+  <input
+    type="text"
+    id="inputObat"
+    placeholder="Contoh: Metformin 500 mg 2x1"
+  >
+</div>
+
+
+  <!-- EDUKASI DAN OBAT -->
+
+  <div class="form-group">
+  <label>Status Edukasi</label>
+
+  <label style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+    <input type="checkbox" id="inputSudahEdukasi">
+    Sudah diberikan edukasi
+  </label>
+</div>
+
+<div class="form-group">
+  <label>Tanggal Edukasi</label>
+  <input type="date" id="inputTanggalEdukasi">
+</div>
+
+<div class="form-group">
+    <label>Materi Edukasi</label>
+
+    <select id="inputMateriEdukasi">
+        <option value="">-- Pilih Materi Edukasi --</option>
+        <option value="Diet DM">Diet DM</option>
+        <option value="Aktivitas fisik">Aktivitas fisik</option>
+        <option value="Kepatuhan minum obat">Kepatuhan minum obat</option>
+        <option value="Kontrol rutin">Kontrol rutin</option>
+        <option value="Pemantauan gula darah">Pemantauan gula darah</option>
+        <option value="Perawatan kaki">Perawatan kaki</option>
+        <option value="Pencegahan komplikasi DM">Pencegahan komplikasi DM</option>
+        <option value="Tanda dan penanganan hipoglikemia">
+            Tanda dan penanganan hipoglikemia
+        </option>
+    </select>
+</div>
+
+  <div class="form-group">
+  <label>Status Pemberian Obat</label>
+
+  <label style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+    <input type="checkbox" id="inputSudahDiberiObat">
+    Sudah diberikan obat
+  </label>
+</div>
+
+<div class="form-group">
+  <label>Tanggal Pemberian Obat</label>
+  <input type="date" id="inputTanggalPemberianObat">
+</div>
+
+  <!-- KUNJUNGAN -->
+
+  <div class="form-group">
+    <label>Kunjungan Terakhir</label>
+    <input type="date" id="inputKunjungan">
+  </div>
+
+</div>
+      <div class="modal-actions"><button type="button" class="btn-cancel" id="cancelModalBtn">Batal</button><button type="submit" class="btn-save">Simpan Pasien</button></div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL DETAIL PASIEN -->
+<div class="modal" id="detailModal">
+  <div class="modal-box detail-box">
+
+    <div class="detail-header">
+      <div>
+        <h2>Detail Pasien DM Tipe 2</h2>
+        <p>Informasi pemeriksaan dan status pengendalian</p>
+      </div>
+
+      <button type="button" class="detail-close" id="closeDetailBtn">
+        ×
+      </button>
+    </div>
+
+    <div id="detailContent"></div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" id="closeDetailBtn2">
+        Tutup
+      </button>
+
+      <button type="button" class="btn-primary" id="detailEditBtn">
+        Edit Data
+      </button>
+    </div>
+
+  </div>
+</div>
+<!-- MODAL TAMBAH KUNJUNGAN -->
+
+<div class="modal" id="visitModal">
+
+  <div class="modal-box">
+
+    <div class="detail-header">
+
+      <div>
+        <h2>Tambah Kunjungan</h2>
+
+        <p>
+          Catat hasil pemeriksaan pasien pada kunjungan ini.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="detail-close"
+        id="closeVisitBtn">
+        ×
+      </button>
+
+    </div>
+
+    <form id="visitForm">
+
+      <div class="form-grid">
+
+        <div class="form-group">
+
+          <label>
+            Tanggal Kunjungan
+          </label>
+
+          <input
+            type="date"
+            id="visitTanggal"
+            required>
+
+        </div>
+
+        <div class="form-group">
+
+          <label>
+            GDP (mg/dL)
+          </label>
+
+          <input
+            type="number"
+            id="visitGDP"
+            placeholder="Contoh: 110"
+            step="0.1">
+
+        </div>
+
+        <div class="form-group">
+
+          <label>
+            GDS (mg/dL)
+          </label>
+
+          <input
+            type="number"
+            id="visitGDS"
+            placeholder="Contoh: 145"
+            step="0.1">
+
+        </div>
+
+        <div class="form-group">
+
+          <label>
+            HbA1c (%)
+          </label>
+
+          <input
+            type="number"
+            id="visitHbA1c"
+            placeholder="Contoh: 6.8"
+            step="0.1">
+
+        </div>
+
+        <div class="form-group">
+
+          <label>
+            Tekanan Darah
+          </label>
+
+          <input
+            type="text"
+            id="visitTD"
+            placeholder="Contoh: 130/80">
+
+        </div>
+
+        <div class="form-group">
+
+          <label>
+            Berat Badan (kg)
+          </label>
+
+          <input
+            type="number"
+            id="visitBB"
+            placeholder="Contoh: 65"
+            step="0.1">
+
+        </div>
+
+        <div class="form-group form-full">
+
+          <label>
+            Obat
+          </label>
+
+          <input
+            type="text"
+            id="visitObat"
+            placeholder="Contoh: Metformin 500 mg 2x1">
+
+        </div>
+
+        <div class="form-group form-full">
+
+          <label>
+            Catatan
+          </label>
+
+          <textarea
+            id="visitCatatan"
+            rows="4"
+            placeholder="Catatan pemeriksaan / edukasi / tindak lanjut"></textarea>
+
+        </div>
+
+      </div>
+
+      <div class="modal-actions">
+
+        <button
+          type="button"
+          class="btn-cancel"
+          id="cancelVisitBtn">
+          Batal
+        </button>
+
+        <button
+          type="submit"
+          class="btn-primary">
+          Simpan Kunjungan
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+
+</div>
+
+<!-- MODAL FOLLOW-UP -->
+<div class="modal" id="followUpModal">
+
+  <div class="modal-box">
+
+    <div class="detail-header">
+
+      <div>
+        <h2>Tindak Lanjut Pasien</h2>
+      </div>
+
+      <button
+        type="button"
+        class="modal-close"
+        onclick="closeFollowUpForm()">
+        ×
+      </button>
+
+    </div>
+
+    <div class="form-group">
+
+      <label>Nama Pasien</label>
+
+      <input
+        type="text"
+        id="followUpPatientName"
+        readonly
+      >
+
+    </div>
+
+    <div class="form-group">
+
+      <label>Tanggal Follow-up</label>
+
+      <input
+        type="date"
+        id="followUpDate"
+      >
+
+    </div>
+
+    <div class="form-group">
+
+      <label>Hasil Follow-up</label>
+
+      <select id="followUpStatus">
+
+        <option value="Sudah Ditindaklanjuti">
+          Sudah Ditindaklanjuti
+        </option>
+
+        <option value="Pasien Sudah Kontrol">
+          Pasien Sudah Kontrol
+        </option>
+
+        <option value="Tidak Dapat Dihubungi">
+          Tidak Dapat Dihubungi
+        </option>
+
+        <option value="Menolak Kontrol">
+          Menolak Kontrol
+        </option>
+
+      </select>
+
+    </div>
+
+    <div class="form-group">
+
+      <label>Catatan Follow-up</label>
+
+      <textarea
+        id="followUpNote"
+        rows="4"
+        placeholder="Tuliskan hasil follow-up pasien..."
+      ></textarea>
+
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:10px;">
+
+      <button
+        type="button"
+        class="action-btn"
+        onclick="closeFollowUpForm()">
+        Batal
+      </button>
+
+      <button
+        type="button"
+        class="action-btn primary"
+        onclick="saveFollowUp()">
+        Simpan Follow-up
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- Chart.js untuk grafik pemeriksaan -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+<!-- ==========================================
+     MODAL TAMBAH PETUGAS
+     ========================================== -->
+
+<div class="modal" id="petugasModal">
+
+  <div class="modal-box">
+
+    <div class="modal-header">
+
+      <h3>Tambah Petugas</h3>
+
+      <button
+        type="button"
+        class="close-btn"
+        onclick="closePetugasModal()"
+      >
+        ×
+      </button>
+
+    </div>
+
+    <form id="petugasForm">
+
+      <div class="modal-grid">
+
+        <div class="form-group">
+
+          <label>
+            Nama Petugas
+          </label>
+
+          <input
+            type="text"
+            id="petugasNama"
+            placeholder="Contoh: Siti Aisyah"
+            required
+          >
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>
+            Email Petugas
+          </label>
+
+          <input
+            type="email"
+            id="petugasEmail"
+            placeholder="petugas@email.com"
+            required
+          >
+
+        </div>
+
+      </div>
+
+
+      <div
+        style="
+          margin-top: 15px;
+          padding: 12px;
+          background: #f8f9fa;
+          border-radius: 10px;
+          font-size: 13px;
+        "
+      >
+
+        <strong>Informasi:</strong>
+
+        <br>
+
+        Setelah akun dibuat, petugas akan menerima
+        email undangan dari Supabase untuk mengatur
+        akun mereka.
+
+      </div>
+
+
+      <div class="modal-actions">
+
+        <button
+          type="button"
+          class="btn-cancel"
+          onclick="closePetugasModal()"
+        >
+          Batal
+        </button>
+
+        <button
+          type="submit"
+          class="btn-save"
+        >
+          Buat Petugas
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+
+</div>
+</body>
+</html>
