@@ -1388,126 +1388,9 @@ if (reportMonth !== "all" && reportYear !== "all") {
         memerlukan tindak lanjut.
       </div>
     </div>
-        <div class="report-section">
-      <h4>🏥 Rekapitulasi Berdasarkan Puskesmas</h4>
-
-      <div class="report-table-wrapper">
-        <table class="report-table">
-          <thead>
-            <tr>
-              <th>Total DM</th>
-              <th>Terkendali</th>
-              <th>Tidak Terkendali</th>
-              <th>Tidak Berkunjung</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            ${[...new Set(reportPatients.map(p => p.puskesmas).filter(Boolean))]
-              .sort()
-              .map(puskesmas => {
-
-                const dataPuskesmas = reportPatients.filter(
-                  p => p.puskesmas === puskesmas
-                );
-
-                const totalPuskesmas = dataPuskesmas.length;
-
-                const terkendaliPuskesmas = dataPuskesmas.filter(
-                  p => getStatus(p) === "Terkendali"
-                ).length;
-
-                const tidakTerkendaliPuskesmas = dataPuskesmas.filter(
-                  p => getStatus(p) === "Tidak Terkendali"
-                ).length;
-
-                const tidakBerkunjungPuskesmas = dataPuskesmas.filter(
-                  p => getStatus(p) === "Tidak Berkunjung"
-                ).length;
-
-                return `
-                  <tr>
-                    <td><strong>${escapeHtml(puskesmas)}</strong></td>
-                    <td>${totalPuskesmas}</td>
-                    <td>${terkendaliPuskesmas}</td>
-                    <td>${tidakTerkendaliPuskesmas}</td>
-                    <td>${tidakBerkunjungPuskesmas}</td>
-                  </tr>
-                `;
-              })
-              .join("")}
-          </tbody>
-        </table>
-      </div>
-    </div>
-        <div class="report-section">
-      <h4>🏆 Capaian DM Terkendali per Puskesmas</h4>
-
-      <div class="report-table-wrapper">
-        <table class="report-table">
-          <thead>
-            <tr>
-              <th>Ranking</th>
-              <th>Total DM</th>
-              <th>DM Terkendali</th>
-              <th>Persentase Terkendali</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            ${[...new Set(reportPatients.map(p => p.puskesmas).filter(Boolean))]
-              .map(puskesmas => {
-
-                const dataPuskesmas = reportPatients.filter(
-                  p => p.puskesmas === puskesmas
-                );
-
-                const totalPuskesmas = dataPuskesmas.length;
-
-                const terkendaliPuskesmas = dataPuskesmas.filter(
-                  p => getStatus(p) === "Terkendali"
-                ).length;
-
-                const persenTerkendali =
-                  totalPuskesmas > 0
-                    ? (terkendaliPuskesmas / totalPuskesmas) * 100
-                    : 0;
-
-                return {
-                  puskesmas,
-                  total: totalPuskesmas,
-                  terkendali: terkendaliPuskesmas,
-                  persen: persenTerkendali
-                };
-              })
-              .sort((a, b) => b.persen - a.persen)
-              .map((item, index) => `
-                <tr>
-                  <td><strong>${index + 1}</strong></td>
-                  <td><strong>${escapeHtml(item.puskesmas)}</strong></td>
-                  <td>${item.total}</td>
-                  <td>${item.terkendali}</td>
-                  <td>
-                    <strong>${item.persen.toFixed(1)}%</strong>
-                  </td>
-                </tr>
-              `)
-              .join("")}
-          </tbody>
-        </table>
-      </div>
-    </div>
-        <div class="report-section">
-      <h4>📊 Grafik Capaian DM Terkendali per Puskesmas</h4>
-
-      <div style="height:350px;">
-        <canvas id="reportPuskesmasChart"></canvas>
-      </div>
-    </div>
-
+        
   `; 
 
-  renderReportPuskesmasChart();
 }
 
 let reportPuskesmasChart = null;
@@ -1776,8 +1659,16 @@ function editPatient(id) {
   $("inputTanggalEdukasi").value =
   p.tanggal_edukasi || "";
 
-  $("inputMateriEdukasi").value =
-    p.materi_edukasi || "";
+ document
+  .querySelectorAll(
+    '#patientForm input[name="materiEdukasi"]'
+  )
+  .forEach(cb => {
+    cb.checked = (p.materi_edukasi || "")
+      .split(",")
+      .map(x => x.trim())
+      .includes(cb.value);
+  });
 
   $("inputTanggalPemberianObat").value =
     p.tanggal_pemberian_obat || "";
@@ -1802,6 +1693,33 @@ function editPatient(id) {
 }
 async function addPatient(e) {
   e.preventDefault();
+
+  const cek = [
+  "inputNama",
+  "inputNIK",
+  "inputTanggalLahir",
+  "inputUmur",
+  "inputNoHP",
+  "inputAlamat",
+  "inputNoBPJS",
+  "inputStatusProlanis",
+  "inputTanggalDiagnosis",
+  "inputGDP",
+  "inputGDS",
+  "inputHbA1c",
+  "inputTD",
+  "inputObat",
+  "inputSudahEdukasi",
+  "inputSudahDiberiObat",
+  "inputTanggalEdukasi",
+  "inputTanggalPemberianObat",
+  "inputKunjungan"
+];
+
+console.log(
+  "ID yang tidak ditemukan:",
+  cek.filter(id => !document.getElementById(id))
+);
 
   const user =
     (await supabaseClient.auth.getUser()).data.user;
@@ -1854,7 +1772,13 @@ async function addPatient(e) {
       $("inputTanggalEdukasi").value || null,
 
     materi_edukasi:
-      $("inputMateriEdukasi").value.trim() || null,
+  Array.from(
+    document.querySelectorAll(
+      '#patientForm input[name="materiEdukasi"]:checked'
+    )
+  )
+    .map(cb => cb.value)
+    .join(", ") || null,
 
     tanggal_pemberian_obat:
       $("inputTanggalPemberianObat").value || null,
@@ -2471,7 +2395,7 @@ async function loadPatientVisits(patientId) {
                         .join("")
                   : "-"
                  }                
-              </td>
+              ok u</td>
               
               <td>
                ${escapeHtml(v.catatan || "-")}
